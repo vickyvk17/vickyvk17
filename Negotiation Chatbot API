@@ -68,3 +68,10 @@ async def chat_with_bot(message: str):
         raise HTTPException(status_code=500, detail="AI model error")
 
 
+
+
+
+
+
+
+
