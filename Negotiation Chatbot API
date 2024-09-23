@@ -1,0 +1,70 @@
+To create the Negotiation Chatbot API
+
+Project Setup
+
+Create a directory for the project:
+
+bash
+mkdir negotiation-chatbot
+cd negotiation-chatbot
+
+
+Initialize a Git repository:
+
+bash
+git init
+
+2. Install Required Libraries
+
+You'll likely need Python and some key libraries to interact with an AI model (e.g., OpenAI API for ChatGPT). Install these libraries:
+
+bash
+pip install fastapi uvicorn openai
+
+ FastAPI Setup
+
+Create a file named main.py to handle API endpoints using FastAPI:
+
+python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import openai
+
+app = FastAPI()
+
+# Replace with your OpenAI or Gemini API key
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+class NegotiationRequest(BaseModel):
+    user_offer: float
+    sentiment: str = "neutral"  # Optional sentiment input
+
+@app.post("/negotiate/")
+async def negotiate_price(request: NegotiationRequest):
+    bot_min_price = 80.0
+    bot_max_price = 100.0
+    user_offer = request.user_offer
+
+    if user_offer < bot_min_price:
+        bot_reply = f"Your offer of ${user_offer} is too low. The lowest we can go is ${bot_min_price}."
+    elif bot_min_price <= user_offer <= bot_max_price:
+        bot_reply = f"Your offer of ${user_offer} is acceptable. We have a deal!"
+    else:
+        bot_reply = f"${user_offer} is too high. Let's settle at ${bot_max_price}."
+    
+    return {"bot_reply": bot_reply}
+
+@app.post("/chat/")
+async def chat_with_bot(message: str):
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003", 
+            prompt=message,
+            max_tokens=100
+        )
+        bot_response = response.choices[0].text.strip()
+        return {"bot_response": bot_response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="AI model error")
+
+
